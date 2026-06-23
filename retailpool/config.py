@@ -135,6 +135,20 @@ class Settings(BaseSettings):
         "case_sensitive": True,
     }
 
+    # Security check for defaults
+    def __init__(self, **data):
+        super().__init__(**data)
+        defaults_used = []
+        if self.API_KEY == "change-me-in-production": defaults_used.append("API_KEY")
+        if self.JWT_SECRET == "retailpool-jwt-secret-change-me": defaults_used.append("JWT_SECRET")
+        
+        if defaults_used:
+            import warnings
+            warnings.warn(
+                f"SECURITY WARNING: You are using default values for {', '.join(defaults_used)}. "
+                "This is extremely dangerous in production! Please set them in your .env file."
+            )
+
 
 # Singleton instance
 settings = Settings()

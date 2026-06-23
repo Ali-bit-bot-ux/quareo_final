@@ -79,11 +79,13 @@ API_KEY_NAME = "X-API-Key"
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
 
 
+import secrets
+
 async def get_api_key(
     api_key: str | None = Security(api_key_header),
 ) -> str:
     """Validate the static API key from request headers."""
-    if api_key and api_key == settings.API_KEY:
+    if api_key and secrets.compare_digest(api_key, settings.API_KEY):
         return api_key
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,
@@ -109,7 +111,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -164,8 +166,7 @@ _PAGE_ROUTES = [
     ("/pools-page", "pools.html"),
     ("/pricing",   "pricing.html"),
     ("/checkout",  "checkout.html"),
-    ("/login",     "login.html"),
-    ("/register",  "register.html"),
+    ("/auth",      "auth.html"),
 ]
 
 for _path, _filename in _PAGE_ROUTES:
