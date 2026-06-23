@@ -3,61 +3,66 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Тарифы — RetailPool AI</title>
+<title>Quareo — Тарифы</title>
 <link rel="stylesheet" href="assets/style.css">
 <style>
-  .page-hero { padding-top: 9rem; padding-bottom: 1rem; text-align: center; }
-  .page-hero .section-eyebrow { justify-content: center; }
-  .page-hero h1 { font-size: clamp(2rem, 4.4vw, 3rem); margin-bottom: 1rem; }
-  .page-hero p { color: var(--text-dim); max-width: 560px; margin: 0 auto; }
+  .page-hero { padding-top: 108px; padding-bottom: 2rem; }
+  .page-hero-center { text-align: center; }
+  .page-hero-center .section-tag { justify-content: center; }
+  .page-hero-center h1 { font-size: clamp(2.4rem, 4.4vw, 3.5rem); margin-bottom: 1.25rem; max-width: 800px; margin-left: auto; margin-right: auto; }
+  .page-hero-center p { color: var(--text-2); max-width: 600px; font-size: 1.15rem; margin-left: auto; margin-right: auto; }
 
   .pricing-grid {
-    display: grid; grid-template-columns: repeat(3, 1fr);
-    gap: 1.25rem; margin-top: 3rem;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.5rem; margin-top: 3rem;
   }
   .price-card {
-    border: 1px solid var(--border); border-radius: var(--radius);
-    background: var(--bg-panel-solid); padding: 2rem;
+    border: 1px solid var(--border); border-radius: var(--radius-xl);
+    background: var(--bg); padding: 2.5rem 2rem;
     display: flex; flex-direction: column;
-    position: relative; transition: border-color 0.2s, transform 0.2s;
+    position: relative; transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
   }
-  .price-card:hover { transform: translateY(-4px); border-color: var(--border-strong); }
+  .price-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: var(--brand-mid); }
+  
   .price-card.featured {
-    border: 1px solid var(--signal-border);
-    background: radial-gradient(ellipse at top right, var(--signal-dim), transparent 60%), var(--bg-panel-solid);
+    border: 2px solid var(--brand);
+    background: linear-gradient(180deg, var(--brand-light) 0%, var(--bg) 20%);
   }
   .price-popular {
-    position: absolute; top: -1px; right: -1px;
-    background: var(--signal); color: #06150c;
+    position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+    background: var(--brand); color: #fff;
     font-family: var(--font-mono); font-size: 11px; font-weight: 700;
-    padding: 5px 14px; border-radius: 0 var(--radius) 0 var(--radius-sm);
-    text-transform: uppercase; letter-spacing: 0.06em;
+    padding: 6px 16px; border-radius: 100px;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    box-shadow: 0 4px 12px rgba(37,99,235,0.3);
   }
-  .price-tier { font-family: var(--font-mono); font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-faint); margin-bottom: 0.6rem; }
-  .price-amount { font-family: var(--font-display); font-size: 2.4rem; font-weight: 700; margin-bottom: 0.2rem; }
-  .price-period { font-family: var(--font-mono); font-size: 13px; color: var(--text-faint); margin-bottom: 1rem; }
-  .price-desc { font-size: 13.5px; color: var(--text-dim); line-height: 1.65; margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
-  .price-features { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 1.75rem; flex: 1; }
-  .price-features li { font-size: 13.5px; color: var(--text-dim); display: flex; align-items: flex-start; gap: 10px; }
-  .feat-check { font-family: var(--font-mono); color: var(--signal); flex-shrink: 0; font-weight: 700; }
+  .price-tier { font-family: var(--font-body); font-size: 1.25rem; font-weight: 700; color: var(--text); margin-bottom: 0.75rem; }
+  .price-amount { font-family: var(--font-display); font-size: 3rem; font-weight: 800; margin-bottom: 0.2rem; color: var(--text); letter-spacing: -0.02em; }
+  .price-period { font-family: var(--font-mono); font-size: 14px; font-weight: 500; color: var(--text-3); margin-bottom: 1.25rem; }
+  .price-desc { font-size: 14.5px; color: var(--text-2); line-height: 1.6; margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border); }
+  
+  .price-features { list-style: none; display: flex; flex-direction: column; gap: 14px; margin-bottom: 2.5rem; flex: 1; }
+  .price-features li { font-size: 14.5px; color: var(--text-2); display: flex; align-items: flex-start; gap: 12px; font-weight: 500; }
+  .feat-check { font-family: var(--font-mono); color: var(--brand); flex-shrink: 0; font-weight: 700; font-size: 16px; margin-top: -2px; }
 
-  .pricing-faq { margin-top: 4rem; }
-  .faq-list { margin-top: 2rem; max-width: 720px; }
-  .faq-item { border-top: 1px solid var(--border); }
-  .faq-item:last-child { border-bottom: 1px solid var(--border); }
+  .pricing-faq { margin-top: 6rem; max-width: 800px; margin-left: auto; margin-right: auto; }
+  .faq-list { margin-top: 3rem; }
+  .faq-item { border-bottom: 1px solid var(--border); }
+  .faq-item:first-child { border-top: 1px solid var(--border); }
   .faq-question {
     display: flex; justify-content: space-between; align-items: center;
-    cursor: pointer; padding: 1.25rem 0; font-size: 15px; font-weight: 500;
-    font-family: var(--font-display);
+    cursor: pointer; padding: 1.5rem 0; font-size: 1.1rem; font-weight: 600;
+    font-family: var(--font-display); color: var(--text); transition: color 0.15s;
   }
-  .faq-arrow { font-family: var(--font-mono); color: var(--signal); transition: transform 0.2s; font-size: 18px; }
+  .faq-question:hover { color: var(--brand); }
+  .faq-arrow { font-family: var(--font-mono); color: var(--brand); transition: transform 0.3s cubic-bezier(.2,.8,.2,1); font-size: 20px; font-weight: 400; }
   .faq-item.open .faq-arrow { transform: rotate(45deg); }
-  .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
-  .faq-item.open .faq-answer { max-height: 260px; }
-  .faq-answer p { color: var(--text-dim); font-size: 14px; padding-bottom: 1.25rem; line-height: 1.7; }
+  .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(.2,.8,.2,1); }
+  .faq-item.open .faq-answer { max-height: 300px; }
+  .faq-answer p { color: var(--text-2); font-size: 15px; padding-bottom: 1.5rem; line-height: 1.7; }
 
   @media (max-width: 860px) {
-    .pricing-grid { grid-template-columns: 1fr; }
+    .pricing-grid { grid-template-columns: 1fr; max-width: 440px; margin-left: auto; margin-right: auto; }
   }
 </style>
 </head>
@@ -65,36 +70,37 @@
 
 <!-- NAV -->
 <nav>
-  <a href="index.html" class="nav-logo">
-    <span class="nav-logo-mark"></span>
-    RetailPool AI
-  </a>
-  <div class="nav-links" id="navLinks">
-    <a href="index.html" data-i="nav_home">Главная</a>
-    <a href="scanner.html" data-i="nav_scanner">Сканер</a>
-    <a href="pools.html" data-i="nav_pools">Пулы</a>
-    <a href="pricing.html" class="active" data-i="nav_pricing">Тарифы</a>
-  </div>
-  <div class="nav-right">
-    <div class="lang-switch">
-      <button class="lang-btn active" data-lang="ru" onclick="rpSetLang('ru')">RU</button>
-      <button class="lang-btn" data-lang="en" onclick="rpSetLang('en')">EN</button>
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      Quareo
+    </a>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html" data-i="nav_home">Главная</a>
+      <a href="scanner.html" data-i="nav_scanner">Сканер</a>
+      <a href="pools.html" data-i="nav_pools">Пулы</a>
+      <a href="pricing.html" class="active" data-i="nav_pricing">Тарифы</a>
     </div>
-    <a href="pricing.html" class="btn-nav-cta" data-i="nav_cta">Начать</a>
-    <button class="nav-burger" onclick="rpToggleMobileNav()" aria-label="Menu">☰</button>
+    <div class="nav-right">
+      <div class="lang-switch">
+        <button class="lang-btn active" data-lang="ru" onclick="rpSetLang('ru')">RU</button>
+        <button class="lang-btn" data-lang="en" onclick="rpSetLang('en')">EN</button>
+      </div>
+      <a href="auth.html?view=register" class="btn-nav-cta" data-i="nav_cta">Начать</a>
+      <button class="nav-burger" onclick="rpToggleMobileNav()" aria-label="Menu">☰</button>
+    </div>
   </div>
 </nav>
 
 <main>
-  <section class="page-hero">
+  <section class="page-hero page-hero-center">
     <div class="container-narrow">
-      <div class="section-eyebrow" data-i="ph_eyebrow">Тарифы</div>
+      <div class="section-tag" data-i="ph_eyebrow">Тарифы</div>
       <h1 data-i="ph_title">Выберите план для вашего масштаба</h1>
       <p data-i="ph_sub">Начните с разведки одной ниши или подключите весь синдикат — цена растёт вместе с вашим бизнесом.</p>
     </div>
   </section>
 
-  <section style="padding-top:1rem">
+  <section style="padding-top:0">
     <div class="container">
       <div class="pricing-grid">
         <div class="price-card" data-reveal>
@@ -103,12 +109,12 @@
           <div class="price-period" data-i="per_month">/ месяц</div>
           <div class="price-desc" data-i="tier1_desc">Для начинающих продавцов, которые хотят найти первую прибыльную нишу.</div>
           <ul class="price-features">
-            <li><span class="feat-check">→</span><span data-i="t1f1">5 Niche Scanner отчётов в месяц</span></li>
-            <li><span class="feat-check">→</span><span data-i="t1f2">Smart Alerts в Telegram</span></li>
-            <li><span class="feat-check">→</span><span data-i="t1f3">Участие в 1 закупочном пуле</span></li>
-            <li><span class="feat-check">→</span><span data-i="t1f4">Базовая аналитика</span></li>
+            <li><span class="feat-check">✓</span><span data-i="t1f1">5 Niche Scanner отчётов в месяц</span></li>
+            <li><span class="feat-check">✓</span><span data-i="t1f2">Smart Alerts в Telegram</span></li>
+            <li><span class="feat-check">✓</span><span data-i="t1f3">Участие в 1 закупочном пуле</span></li>
+            <li><span class="feat-check">✓</span><span data-i="t1f4">Базовая аналитика</span></li>
           </ul>
-          <a class="btn btn-secondary btn-block" href="checkout.html?plan=Старт&price=9900" data-i="choose_plan">Выбрать план</a>
+          <a class="btn-secondary btn-block" href="checkout.html?plan=Старт&price=9900" style="padding: 14px; font-size: 15px;" data-i="choose_plan">Выбрать план</a>
         </div>
 
         <div class="price-card featured" data-reveal>
@@ -118,14 +124,14 @@
           <div class="price-period" data-i="per_month">/ месяц</div>
           <div class="price-desc" data-i="tier2_desc">Для активных продавцов, которые работают сразу на нескольких площадках.</div>
           <ul class="price-features">
-            <li><span class="feat-check">→</span><span data-i="t2f1">Неограниченные Niche Scanner отчёты</span></li>
-            <li><span class="feat-check">→</span><span data-i="t2f2">Приоритетные Smart Alerts</span></li>
-            <li><span class="feat-check">→</span><span data-i="t2f3">Участие в неограниченных пулах</span></li>
-            <li><span class="feat-check">→</span><span data-i="t2f4">Мультиканальный выход (Kaspi+WB+Ozon)</span></li>
-            <li><span class="feat-check">→</span><span data-i="t2f5">Генерация карточек товара</span></li>
-            <li><span class="feat-check">→</span><span data-i="t2f6">Аналитика офлайн остатков</span></li>
+            <li><span class="feat-check">✓</span><span data-i="t2f1">Неограниченные Niche Scanner отчёты</span></li>
+            <li><span class="feat-check">✓</span><span data-i="t2f2">Приоритетные Smart Alerts</span></li>
+            <li><span class="feat-check">✓</span><span data-i="t2f3">Участие в неограниченных пулах</span></li>
+            <li><span class="feat-check">✓</span><span data-i="t2f4">Мультиканальный выход (Kaspi+WB+Ozon)</span></li>
+            <li><span class="feat-check">✓</span><span data-i="t2f5">Генерация карточек товара</span></li>
+            <li><span class="feat-check">✓</span><span data-i="t2f6">Аналитика офлайн остатков</span></li>
           </ul>
-          <a class="btn btn-primary btn-block" href="checkout.html?plan=Бизнес&price=29900" data-i="choose_plan">Выбрать план</a>
+          <a class="btn-primary btn-block" href="checkout.html?plan=Бизнес&price=29900" style="padding: 14px; font-size: 15px;" data-i="choose_plan">Выбрать план</a>
         </div>
 
         <div class="price-card" data-reveal>
@@ -134,20 +140,20 @@
           <div class="price-period" data-i="per_month">/ месяц</div>
           <div class="price-desc" data-i="tier3_desc">Для агентств и крупных продавцов, управляющих несколькими магазинами.</div>
           <ul class="price-features">
-            <li><span class="feat-check">→</span><span data-i="t3f1">Всё из Бизнес</span></li>
-            <li><span class="feat-check">→</span><span data-i="t3f2">До 10 магазинов под одним аккаунтом</span></li>
-            <li><span class="feat-check">→</span><span data-i="t3f3">API доступ</span></li>
-            <li><span class="feat-check">→</span><span data-i="t3f4">Выделенный менеджер</span></li>
-            <li><span class="feat-check">→</span><span data-i="t3f5">Whitelabel отчёты</span></li>
+            <li><span class="feat-check">✓</span><span data-i="t3f1">Всё из Бизнес</span></li>
+            <li><span class="feat-check">✓</span><span data-i="t3f2">До 10 магазинов под одним аккаунтом</span></li>
+            <li><span class="feat-check">✓</span><span data-i="t3f3">API доступ</span></li>
+            <li><span class="feat-check">✓</span><span data-i="t3f4">Выделенный менеджер</span></li>
+            <li><span class="feat-check">✓</span><span data-i="t3f5">Whitelabel отчёты</span></li>
           </ul>
-          <a class="btn btn-secondary btn-block" href="checkout.html?plan=Агентство&price=79900" data-i="choose_plan">Выбрать план</a>
+          <a class="btn-secondary btn-block" href="checkout.html?plan=Агентство&price=79900" style="padding: 14px; font-size: 15px;" data-i="choose_plan">Выбрать план</a>
         </div>
       </div>
 
       <div class="pricing-faq">
-        <div class="section-eyebrow" data-i="faq_eyebrow">FAQ</div>
-        <h2 class="section-title" data-i="faq_title">Частые вопросы</h2>
-        <div class="faq-list" id="faqList"></div>
+        <div class="section-tag" data-i="faq_eyebrow" style="justify-content: center; display: flex;">FAQ</div>
+        <h2 class="section-title" data-i="faq_title" style="text-align: center; margin-left: auto; margin-right: auto;">Частые вопросы</h2>
+        <div class="faq-list" id="faqList" data-reveal></div>
       </div>
     </div>
   </section>
@@ -157,8 +163,8 @@
 <footer>
   <div class="footer-grid">
     <div>
-      <div class="footer-brand"><span class="nav-logo-mark"></span> RetailPool AI</div>
-      <p class="footer-desc" data-i="footer_desc"></p>
+      <div class="footer-brand">Quareo</div>
+      <p class="footer-desc" data-i="footer_desc">ИИ-радар по Kaspi.kz: находим ниши со слабой конкуренцией и собираем синдикаты совместных закупок для МСБ Казахстана.</p>
     </div>
     <div class="footer-col">
       <div class="footer-col-title" data-i="footer_product">Продукт</div>
@@ -171,7 +177,7 @@
       <div class="footer-col-title" data-i="footer_company">Компания</div>
       <a href="#" data-i="footer_l_about">О проекте</a>
       <a href="#" data-i="footer_l_contact">Контакты</a>
-      <a href="https://t.me/retailpoolai" target="_blank" data-i="footer_l_telegram">Telegram-бот</a>
+      <a href="https://t.me/quareobot" target="_blank" data-i="footer_l_telegram">Telegram-бот</a>
     </div>
     <div class="footer-col">
       <div class="footer-col-title" data-i="footer_legal">Документы</div>
@@ -181,8 +187,8 @@
     </div>
   </div>
   <div class="footer-bottom">
-    <span data-i="footer_rights"></span>
-    <span class="mono" data-i="footer_built"></span>
+    <span data-i="footer_rights">© 2026 Quareo. Все права защищены.</span>
+    <span class="mono" data-i="footer_built">Алматы · Казахстан</span>
   </div>
 </footer>
 
