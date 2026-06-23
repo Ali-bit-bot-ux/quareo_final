@@ -23,6 +23,7 @@ from retailpool.models.base import Base
 # Import all models so Base.metadata knows about them
 import retailpool.models.product  # noqa: F401
 import retailpool.models.pool     # noqa: F401
+import retailpool.models.user     # noqa: F401
 
 
 async def init_db():
@@ -39,6 +40,9 @@ if __name__ == "__main__":
     # Launch uvicorn
     import uvicorn
     print("\n>>> Starting RetailPool AI v2.0 (DEV MODE)")
+    print(">>> Frontend:   http://localhost:8000/")
+    print(">>> Login:      http://localhost:8000/login")
+    print(">>> Register:   http://localhost:8000/register")
     print(">>> Swagger UI: http://localhost:8000/docs")
     print(">>> ReDoc:      http://localhost:8000/redoc")
     print("-" * 50)

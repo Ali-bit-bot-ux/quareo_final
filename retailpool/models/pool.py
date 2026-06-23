@@ -46,6 +46,8 @@ class Pool(Base):
     product_id: Mapped[uuid.UUID] = mapped_column(
         UUIDType, ForeignKey("products.id", ondelete="CASCADE"), index=True
     )
+    product_name: Mapped[str] = mapped_column(String(255), default="")
+    supplier_name: Mapped[str] = mapped_column(String(255), default="")
 
     # Targets for quorum
     target_quantity: Mapped[int] = mapped_column(

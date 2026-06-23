@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kaspi Niche Scanner — RetailPool AI</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  .page-hero { padding-top: 9rem; padding-bottom: 2.5rem; text-align: center; }
+  .page-hero .section-eyebrow { justify-content: center; }
+  .page-hero h1 { font-size: clamp(2rem, 4.4vw, 3rem); margin-bottom: 1rem; }
+  .page-hero p { color: var(--text-dim); max-width: 560px; margin: 0 auto; }
+
+  /* ── Terminal panel ───────────────────────────────────────── */
+  .terminal {
+    border-radius: var(--radius); border: 1px solid var(--border);
+    background: var(--bg-panel-solid); overflow: hidden;
+    margin-top: 2.5rem;
+  }
+  .terminal-bar {
+    padding: 0.9rem 1.25rem; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .terminal-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .terminal-title {
+    font-family: var(--font-mono); font-size: 12px; color: var(--text-faint);
+    margin-left: 6px;
+  }
+  .terminal-status {
+    margin-left: auto; font-family: var(--font-mono); font-size: 11px;
+    color: var(--signal); display: flex; align-items: center; gap: 6px;
+  }
+  .terminal-status .dot-live {
+    width: 6px; height: 6px; border-radius: 50%; background: var(--signal);
+    box-shadow: 0 0 6px var(--signal); animation: blip-pulse 2s ease-in-out infinite;
+  }
+
+  .input-row {
+    padding: 1.5rem; display: flex; gap: 10px; flex-wrap: wrap;
+    border-bottom: 1px solid var(--border);
+  }
+  .scan-input {
+    flex: 1; min-width: 220px;
+    background: var(--bg-elevated); border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm); padding: 13px 18px;
+    color: var(--text); font-size: 14px; outline: none;
+    font-family: var(--font-mono);
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .scan-input:focus { border-color: var(--signal-border); box-shadow: 0 0 0 3px var(--signal-dim); }
+  .scan-input::placeholder { color: var(--text-faint); }
+
+  .chip-row { padding: 0 1.5rem 1.25rem; display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip {
+    font-family: var(--font-mono); font-size: 12px;
+    background: var(--bg-elevated); color: var(--text-dim);
+    border: 1px solid var(--border); border-radius: 100px;
+    padding: 6px 14px; cursor: pointer; transition: all 0.15s;
+  }
+  .chip:hover { border-color: var(--signal-border); color: var(--signal); }
+
+  .scan-body { padding: 1.75rem; min-height: 140px; }
+
+  .scan-idle {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 12px; padding: 3rem 0; color: var(--text-faint);
+  }
+  .scan-idle-ring {
+    width: 56px; height: 56px; border-radius: 50%;
+    border: 1.5px dashed var(--border-strong);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; color: var(--text-faint);
+    animation: idle-spin 18s linear infinite;
+  }
+  @keyframes idle-spin { to { transform: rotate(360deg); } }
+  .scan-idle p { font-family: var(--font-mono); font-size: 13px; }
+
+  .scan-loading { display: none; align-items: center; gap: 14px; padding: 2.5rem 0; }
+  .scan-loading.active { display: flex; }
+  .scan-spinner {
+    width: 22px; height: 22px; border-radius: 50%;
+    border: 2px solid var(--border-strong); border-top-color: var(--signal);
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .scan-loading-text { font-family: var(--font-mono); font-size: 13px; color: var(--text-dim); }
+
+  .scan-result { display: none; }
+  .scan-result.active { display: block; animation: result-fade 0.5s ease; }
+  @keyframes result-fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  .result-head {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem; border-bottom: 1px solid var(--border);
+  }
+  .result-title { font-size: 1.3rem; font-family: var(--font-display); font-weight: 700; }
+  .result-score {
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--font-mono);
+  }
+  .score-ring {
+    width: 52px; height: 52px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700; flex-shrink: 0;
+    border: 3px solid var(--signal); color: var(--signal);
+    box-shadow: 0 0 16px var(--signal-dim);
+  }
+  .score-text-label { font-size: 12px; color: var(--text-dim); }
+  .score-text-label strong { display: block; color: var(--text); font-size: 14px; font-family: var(--font-body); }
+
+  .metric-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1px; margin-bottom: 1.75rem;
+    background: var(--border); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+  .metric-cell { background: var(--bg-elevated); padding: 14px 16px; }
+  .metric-cell-label {
+    font-family: var(--font-mono); font-size: 10px; text-transform: uppercase;
+    letter-spacing: 0.1em; color: var(--text-faint); margin-bottom: 6px;
+  }
+  .metric-cell-val { font-family: var(--font-mono); font-size: 1.1rem; font-weight: 700; }
+
+  .result-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+  .result-block-title {
+    font-family: var(--font-mono); font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.12em; color: var(--text-faint); margin-bottom: 0.75rem;
+  }
+  .item-list { display: flex; flex-direction: column; gap: 8px; }
+  .item-row {
+    display: flex; gap: 10px; align-items: flex-start;
+    font-size: 13.5px; color: var(--text-dim); line-height: 1.5;
+    background: var(--bg-elevated); border-radius: var(--radius-sm); padding: 10px 14px;
+    border: 1px solid var(--border);
+  }
+  .item-row.weak { border-color: rgba(255,92,92,0.25); }
+  .item-row.weak .item-mark { color: var(--alert); }
+  .item-row.reco { border-color: var(--signal-border); }
+  .item-row.reco .item-mark { color: var(--signal); }
+  .item-mark { font-family: var(--font-mono); flex-shrink: 0; font-weight: 700; }
+
+  .analysis-block {
+    font-size: 14px; color: var(--text-dim); line-height: 1.8;
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .cursor-blink {
+    display: inline-block; width: 2px; height: 14px;
+    background: var(--signal); margin-left: 2px;
+    animation: blink 0.8s step-end infinite; vertical-align: middle;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .pool-banner {
+    border-radius: var(--radius-sm); border: 1px solid var(--signal-border);
+    background: var(--signal-dim);
+    padding: 1.1rem 1.5rem;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 1rem; flex-wrap: wrap;
+  }
+  .pool-banner-text { font-size: 14px; color: var(--text); }
+  .pool-banner-text strong { color: var(--signal); }
+
+  @media (max-width: 700px) {
+    .result-cols { grid-template-columns: 1fr; }
+    .metric-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-logo">
+    <span class="nav-logo-mark"></span>
+    RetailPool AI
+  </a>
+  <div class="nav-links" id="navLinks">
+    <a href="index.html" data-i="nav_home">Главная</a>
+    <a href="scanner.html" class="active" data-i="nav_scanner">Сканер</a>
+    <a href="pools.html" data-i="nav_pools">Пулы</a>
+    <a href="pricing.html" data-i="nav_pricing">Тарифы</a>
+  </div>
+  <div class="nav-right">
+    <div class="lang-switch">
+      <button class="lang-btn active" data-lang="ru" onclick="rpSetLang('ru')">RU</button>
+      <button class="lang-btn" data-lang="en" onclick="rpSetLang('en')">EN</button>
+    </div>
+    <a href="pricing.html" class="btn-nav-cta" data-i="nav_cta">Начать</a>
+    <button class="nav-burger" onclick="rpToggleMobileNav()" aria-label="Menu">☰</button>
+  </div>
+</nav>
+
+<main>
+  <section class="page-hero" id="demo">
+    <div class="container-narrow">
+      <div class="section-eyebrow" data-i="ph_eyebrow">Kaspi Niche Scanner</div>
+      <h1 data-i="ph_title">Введите товар — получите разведданные</h1>
+      <p data-i="ph_sub">Живой анализ ниши на Kaspi.kz: спрос, слабые конкуренты и рекомендации по входу за секунды.</p>
+    </div>
+  </section>
+
+  <section style="padding-top:0">
+    <div class="container">
+      <div class="terminal" data-reveal>
+        <div class="terminal-bar">
+          <span class="terminal-dot" style="background:#ff5c5c"></span>
+          <span class="terminal-dot" style="background:#ffb627"></span>
+          <span class="terminal-dot" style="background:#39ff8c"></span>
+          <span class="terminal-title">retailpool@scanner — kaspi.kz</span>
+          <span class="terminal-status"><span class="dot-live"></span><span data-i="term_live">ОНЛАЙН</span></span>
+        </div>
+        <div class="input-row">
+          <input class="scan-input" id="nicheInput" data-i_ph="scan_ph" placeholder="увлажнитель воздуха, наушники TWS, товары для дачи..." onkeydown="if(event.key==='Enter')runAnalysis()">
+          <button class="btn btn-primary" id="analyzeBtn" onclick="runAnalysis()">
+            <span data-i="scan_btn">Сканировать</span>
+          </button>
+        </div>
+        <div class="chip-row">
+          <span class="chip" onclick="fillChip(this)" data-ru="увлажнитель воздуха" data-en="air humidifier">💧 <span data-i="chip1">Увлажнитель воздуха</span></span>
+          <span class="chip" onclick="fillChip(this)" data-ru="беспроводные наушники" data-en="wireless earbuds">🎧 <span data-i="chip2">Беспроводные наушники</span></span>
+          <span class="chip" onclick="fillChip(this)" data-ru="детские игрушки монтессори" data-en="montessori toys">🧸 <span data-i="chip3">Игрушки Монтессори</span></span>
+          <span class="chip" onclick="fillChip(this)" data-ru="витамины и бады" data-en="vitamins and supplements">💊 <span data-i="chip4">Витамины и БАДы</span></span>
+          <span class="chip" onclick="fillChip(this)" data-ru="товары для дачи" data-en="garden goods">🪴 <span data-i="chip5">Товары для дачи</span></span>
+        </div>
+
+        <div class="scan-body">
+          <div class="scan-idle" id="scanIdle">
+            <div class="scan-idle-ring">◎</div>
+            <p data-i="scan_idle">Введите товар выше и нажмите «Сканировать»</p>
+          </div>
+          <div class="scan-loading" id="scanLoading">
+            <div class="scan-spinner"></div>
+            <span class="scan-loading-text" id="loadingText" data-i="scan_loading">Сканирую Kaspi.kz...</span>
+          </div>
+          <div class="scan-result" id="scanResult">
+            <div class="result-head">
+              <div class="result-title" id="resultTitle"></div>
+              <div class="result-score">
+                <div class="score-ring" id="scoreRing"></div>
+                <div class="score-text-label">
+                  <span data-i="score_label">Niche Score</span>
+                  <strong id="scoreLabelText"></strong>
+                </div>
+              </div>
+            </div>
+            <div class="metric-grid" id="metricGrid"></div>
+            <div class="result-cols">
+              <div>
+                <div class="result-block-title" data-i="res_weak">Слабые места конкурентов</div>
+                <div class="item-list" id="weaknessList"></div>
+              </div>
+              <div>
+                <div class="result-block-title" data-i="res_reco">Рекомендации RetailPool AI</div>
+                <div class="item-list" id="recoList"></div>
+              </div>
+            </div>
+            <div class="result-block-title" data-i="res_analysis">Полный анализ</div>
+            <div class="analysis-block" id="analysisBlock"></div>
+            <div class="pool-banner" style="flex-direction: column; align-items: stretch; gap: 1rem;">
+              <div class="pool-banner-text" style="text-align: center; margin-bottom: 0.5rem;">
+                <strong data-i="pool_action_title">Организуйте совместную закупку</strong>
+                <br>
+                <span data-i="pool_action_desc" style="color: var(--text-dim); font-size: 13px; display: inline-block; margin-top: 4px;">Создайте новый пул для этой ниши или найдите уже существующий.</span>
+              </div>
+              <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                <a href="pools.html?action=create" class="btn btn-primary" data-i="pool_create" style="padding:10px 22px; font-size:13px;">➕ Создать пул</a>
+                <a href="pools.html?action=search" class="btn btn-secondary" data-i="pool_search" style="padding:10px 22px; font-size:13px; background: transparent; border: 1px solid var(--signal); color: var(--signal);">🔍 Найти пул</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div>
+      <div class="footer-brand"><span class="nav-logo-mark"></span> RetailPool AI</div>
+      <p class="footer-desc" data-i="footer_desc"></p>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title" data-i="footer_product">Продукт</div>
+      <a href="scanner.html" data-i="footer_l_scanner">Niche Scanner</a>
+      <a href="pools.html" data-i="footer_l_pools">Co-Buying пулы</a>
+      <a href="pricing.html" data-i="footer_l_pricing">Тарифы</a>
+      <a href="scanner.html#demo" data-i="footer_l_demo">Демо</a>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title" data-i="footer_company">Компания</div>
+      <a href="#" data-i="footer_l_about">О проекте</a>
+      <a href="#" data-i="footer_l_contact">Контакты</a>
+      <a href="https://t.me/retailpoolai" target="_blank" data-i="footer_l_telegram">Telegram-бот</a>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title" data-i="footer_legal">Документы</div>
+      <a href="#" data-i="footer_l_privacy">Политика конфиденциальности</a>
+      <a href="#" data-i="footer_l_terms">Условия использования</a>
+      <a href="#" data-i="footer_l_offer">Публичная оферта</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span data-i="footer_rights"></span>
+    <span class="mono" data-i="footer_built"></span>
+  </div>
+</footer>
+
+<script src="assets/common.js"></script>
+<script>
+const PAGE_I18N = {
+  ru: {
+    ph_eyebrow: "Kaspi Niche Scanner",
+    ph_title: "Введите товар — получите реальные данные",
+    ph_sub: "Живой анализ ниши на Kaspi.kz: реальные товары, цены, конкуренты и рекомендации по входу.",
+    term_live: "ОНЛАЙН",
+    scan_ph: "увлажнитель воздуха, наушники TWS, товары для дачи...",
+    scan_btn: "Сканировать",
+    chip1: "Увлажнитель воздуха", chip2: "Беспроводные наушники", chip3: "Игрушки Монтессори", chip4: "Витамины и БАДы", chip5: "Товары для дачи",
+    scan_idle: "Введите товар выше и нажмите «Сканировать»",
+    scan_loading: "Сканирую Kaspi.kz...",
+    score_label: "Niche Score",
+    res_weak: "Слабые места конкурентов", res_reco: "Рекомендации RetailPool AI", res_analysis: "Полный анализ",
+    res_products: "Найденные товары на Kaspi.kz",
+    pool_action_title: "Организуйте совместную закупку", pool_action_desc: "Создайте новый пул для этой ниши или найдите уже существующий.", pool_create: "➕ Создать пул", pool_search: "🔍 Найти пул",
+    metric_demand: "Спрос", metric_sellers: "Продавцов", metric_price: "Средняя цена", metric_opp: "Потенциал",
+    scan_error: "Ошибка анализа. Попробуйте снова.",
+    scan_blocked: "Kaspi.kz заблокировал запрос. Подождите 30 сек и попробуйте снова.",
+    loading_msgs: ["Запускаю Playwright...","Открываю Kaspi.kz...","Парсю результаты поиска...","Анализирую карточки товаров...","Считаю метрики ниши..."],
+    badge_real: "📊 РЕАЛЬНЫЕ ДАННЫЕ",
+  },
+  en: {
+    ph_eyebrow: "Kaspi Niche Scanner",
+    ph_title: "Enter a product — get real data",
+    ph_sub: "Live niche analysis on Kaspi.kz: real products, prices, competitors and entry recommendations.",
+    term_live: "LIVE",
+    scan_ph: "air humidifier, TWS earbuds, garden goods...",
+    scan_btn: "Scan",
+    chip1: "Air humidifier", chip2: "Wireless earbuds", chip3: "Montessori toys", chip4: "Vitamins & supplements", chip5: "Garden goods",
+    scan_idle: "Enter a product above and click Scan",
+    scan_loading: "Scanning Kaspi.kz...",
+    score_label: "Niche Score",
+    res_weak: "Competitor weaknesses", res_reco: "RetailPool AI recommendations", res_analysis: "Full analysis",
+    res_products: "Products found on Kaspi.kz",
+    pool_action_title: "Organize a co-buying pool", pool_action_desc: "Create a new pool for this niche or find an existing one.", pool_create: "➕ Create pool", pool_search: "🔍 Find pool",
+    metric_demand: "Demand", metric_sellers: "Sellers", metric_price: "Avg price", metric_opp: "Opportunity",
+    scan_error: "Analysis failed. Please try again.",
+    scan_blocked: "Kaspi.kz blocked the request. Wait 30s and try again.",
+    loading_msgs: ["Launching Playwright...","Opening Kaspi.kz...","Parsing search results...","Analyzing product cards...","Calculating niche metrics..."],
+    badge_real: "📊 REAL DATA",
+  }
+};
+Object.keys(PAGE_I18N).forEach(l => Object.assign(RP_I18N[l], PAGE_I18N[l]));
+
+function onLangChange() {}
+
+function fillChip(el) {
+  const text = RP_LANG === 'ru' ? el.getAttribute('data-ru') : el.getAttribute('data-en');
+  document.getElementById('nicheInput').value = text;
+  runAnalysis();
+}
+
+async function runAnalysis() {
+  const niche = document.getElementById('nicheInput').value.trim();
+  if (!niche) return;
+
+  const t = RP_I18N[RP_LANG];
+  document.getElementById('scanIdle').style.display = 'none';
+  document.getElementById('scanResult').classList.remove('active');
+  const loading = document.getElementById('scanLoading');
+  loading.classList.add('active');
+  document.getElementById('analyzeBtn').disabled = true;
+
+  let mi = 0;
+  const lt = document.getElementById('loadingText');
+  const msgInterval = setInterval(() => {
+    mi = (mi + 1) % t.loading_msgs.length;
+    lt.textContent = t.loading_msgs[mi];
+  }, 3000);
+
+  try {
+    // Call our REAL backend scraper API
+    const resp = await fetch(RP_API_BASE + '/api/scan', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...rpAuthHeaders(),
+      },
+      body: JSON.stringify({ query: niche }),
+    });
+
+    if (!resp.ok) {
+      throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+    }
+
+    const r = await resp.json();
+
+    clearInterval(msgInterval);
+    loading.classList.remove('active');
+    document.getElementById('analyzeBtn').disabled = false;
+
+    if (!r.success) {
+      document.getElementById('scanIdle').style.display = 'flex';
+      const idleP = document.getElementById('scanIdle').querySelector('p');
+      idleP.textContent = r.analysis || t.scan_error;
+      idleP.style.color = 'var(--alert)';
+      return;
+    }
+
+    // Render results
+    document.getElementById('resultTitle').textContent = niche;
+    document.getElementById('scoreRing').textContent = r.score;
+    const scoreRing = document.getElementById('scoreRing');
+    if (r.score >= 60) {
+      scoreRing.style.borderColor = 'var(--signal)';
+      scoreRing.style.color = 'var(--signal)';
+    } else if (r.score >= 35) {
+      scoreRing.style.borderColor = 'var(--amber, #ffb627)';
+      scoreRing.style.color = 'var(--amber, #ffb627)';
+    } else {
+      scoreRing.style.borderColor = 'var(--alert)';
+      scoreRing.style.color = 'var(--alert)';
+    }
+    document.getElementById('scoreLabelText').textContent = r.score_label;
+
+    document.getElementById('metricGrid').innerHTML = `
+      <div class="metric-cell"><div class="metric-cell-label">${t.metric_demand}</div><div class="metric-cell-val text-violet" style="font-size:0.95rem">${r.demand}</div></div>
+      <div class="metric-cell"><div class="metric-cell-label">${t.metric_sellers}</div><div class="metric-cell-val text-amber" style="font-size:0.95rem">${r.sellers}</div></div>
+      <div class="metric-cell"><div class="metric-cell-label">${t.metric_price}</div><div class="metric-cell-val text-signal" style="font-size:0.95rem">${r.avg_price}</div></div>
+      <div class="metric-cell"><div class="metric-cell-label">${t.metric_opp}</div><div class="metric-cell-val text-signal" style="font-size:0.95rem">${r.opportunity}</div></div>
+    `;
+
+    // Weaknesses
+    document.getElementById('weaknessList').innerHTML = (r.weaknesses || []).map(w =>
+      `<div class="item-row weak"><span class="item-mark">✗</span><span>${w}</span></div>`
+    ).join('') || '<div class="item-row"><span style="color:var(--text-faint)">Слабых мест не обнаружено</span></div>';
+
+    // Recommendations
+    document.getElementById('recoList').innerHTML = (r.recommendations || []).map(rc =>
+      `<div class="item-row reco"><span class="item-mark">✓</span><span>${rc}</span></div>`
+    ).join('');
+
+    // Analysis with typewriter
+    const block = document.getElementById('analysisBlock');
+    block.textContent = '';
+    document.getElementById('scanResult').classList.add('active');
+    let i = 0;
+    const chars = (r.analysis || '').split('');
+    const cursor = document.createElement('span');
+    cursor.className = 'cursor-blink';
+    block.appendChild(cursor);
+    const typer = setInterval(() => {
+      if (i < chars.length) {
+        block.insertBefore(document.createTextNode(chars[i]), cursor);
+        i++;
+      } else {
+        cursor.remove();
+        clearInterval(typer);
+      }
+    }, 12);
+
+    // Product list
+    renderProducts(r.products || [], t);
+
+  } catch (e) {
+    clearInterval(msgInterval);
+    loading.classList.remove('active');
+    document.getElementById('analyzeBtn').disabled = false;
+    document.getElementById('scanIdle').style.display = 'flex';
+    const idleP = document.getElementById('scanIdle').querySelector('p');
+    idleP.textContent = t.scan_error + ' (' + e.message + ')';
+    idleP.style.color = 'var(--alert)';
+  }
+}
+
+function renderProducts(products, t) {
+  let container = document.getElementById('productsList');
+  if (!container) {
+    // Create products section dynamically
+    const parent = document.getElementById('scanResult');
+    const poolBanner = parent.querySelector('.pool-banner');
+
+    const titleDiv = document.createElement('div');
+    titleDiv.className = 'result-block-title';
+    titleDiv.setAttribute('data-i', 'res_products');
+    titleDiv.textContent = t.res_products || 'Найденные товары';
+    parent.insertBefore(titleDiv, poolBanner);
+
+    container = document.createElement('div');
+    container.id = 'productsList';
+    container.style.cssText = 'display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:1.5rem;';
+    parent.insertBefore(container, poolBanner);
+  }
+
+  if (!products.length) {
+    container.innerHTML = '<div style="color:var(--text-faint);font-size:13px;padding:1rem;">Товары не найдены</div>';
+    return;
+  }
+
+  container.innerHTML = products.slice(0, 10).map((p, idx) => {
+    const priceStr = p.price ? (p.price.toLocaleString('ru-RU') + ' ₸') : '—';
+    const ratingStr = p.rating ? ('⭐ ' + p.rating.toFixed(1)) : '';
+    const reviewStr = p.review_count ? (p.review_count + ' отз.') : '';
+    const weakClass = p.is_weak ? 'weak' : '';
+    const weakBadge = p.is_weak
+      ? '<span style="color:var(--alert);font-size:11px;font-family:var(--font-mono);margin-left:auto;">УЯЗВИМ</span>'
+      : '<span style="color:var(--signal);font-size:11px;font-family:var(--font-mono);margin-left:auto;">ОК</span>';
+
+    const reasons = (p.weakness_reasons || []).length
+      ? `<div style="font-size:11px;color:var(--text-faint);margin-top:4px;">${p.weakness_reasons.join(' · ')}</div>`
+      : '';
+
+    return `
+      <div class="item-row ${weakClass}" style="flex-direction:column;gap:4px;">
+        <div style="display:flex;gap:10px;align-items:center;width:100%;">
+          <span class="item-mark" style="font-size:12px;color:var(--text-faint);">${idx + 1}</span>
+          <a href="${p.url || '#'}" target="_blank" rel="noopener" style="color:var(--text);text-decoration:none;font-size:13px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${p.title}">${p.title}</a>
+          ${weakBadge}
+        </div>
+        <div style="display:flex;gap:14px;font-family:var(--font-mono);font-size:12px;color:var(--text-dim);padding-left:26px;">
+          <span style="color:var(--signal);font-weight:700;">${priceStr}</span>
+          <span>${ratingStr}</span>
+          <span>${reviewStr}</span>
+        </div>
+        ${reasons}
+      </div>`;
+  }).join('');
+
+  // Add "real data" badge
+  const badge = document.createElement('div');
+  badge.style.cssText = 'text-align:center;margin-top:10px;font-family:var(--font-mono);font-size:11px;color:var(--signal);opacity:0.7;';
+  badge.textContent = t.badge_real + ' · ' + products.length + ' товаров с kaspi.kz';
+  container.appendChild(badge);
+}
+</script>
+</body>
+</html>

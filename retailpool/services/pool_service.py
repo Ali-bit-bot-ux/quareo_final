@@ -43,6 +43,8 @@ class PoolService:
         """Open a new co-buying pool."""
         pool = Pool(
             product_id=data.product_id,
+            product_name=data.product_name,
+            supplier_name=data.supplier_name,
             target_quantity=data.target_quantity,
             target_amount=data.target_amount,
             current_quantity=0,

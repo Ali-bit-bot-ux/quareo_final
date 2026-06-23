@@ -69,6 +69,20 @@ class Settings(BaseSettings):
         description="Static API key for service-to-service auth (MVP).",
     )
 
+    # ── JWT Authentication ────────────────────────────────────────────────
+    JWT_SECRET: str = Field(
+        default="retailpool-jwt-secret-change-me",
+        description="Secret key for signing JWT tokens.",
+    )
+    JWT_ALGORITHM: str = Field(
+        default="HS256",
+        description="Algorithm used for JWT encoding.",
+    )
+    JWT_EXPIRE_HOURS: int = Field(
+        default=24,
+        description="JWT token expiration time in hours.",
+    )
+
     # ── Proxy Provider ────────────────────────────────────────────────────
     PROXY_PROVIDER_API_URL: str = Field(
         default="",
@@ -81,6 +95,10 @@ class Settings(BaseSettings):
     PROXY_COUNTRY: str = Field(
         default="kz",
         description="Target country code for residential/mobile proxies. Kazakhstan = kz.",
+    )
+    PROXY_URL: str = Field(
+        default="",
+        description="Static or provider-side rotating gateway proxy URL (e.g. http://user:pass@host:port).",
     )
 
     # ── Telegram (for document service payload target) ────────────────────
@@ -107,7 +125,7 @@ class Settings(BaseSettings):
         description="Maximum delay (seconds) between scraper requests.",
     )
     SCRAPER_HEADLESS: bool = Field(
-        default=True,
+        default=False,
         description="Run Playwright browser in headless mode.",
     )
 

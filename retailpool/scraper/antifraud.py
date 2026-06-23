@@ -168,6 +168,32 @@ class SmartProxyProvider(BaseProxyProvider):
         await self._client.aclose()
 
 
+class StaticProxyProvider(BaseProxyProvider):
+    """
+    Provider for a single static proxy or a provider-side rotating gateway.
+    
+    Configure via environment variable:
+        PROXY_URL — target proxy URL
+    """
+
+    def __init__(self, proxy_url: str | None = None) -> None:
+        self._proxy_url = proxy_url or settings.PROXY_URL
+
+    async def get_proxy(self) -> str | None:
+        """Return the configured proxy URL, or None if not set."""
+        if not self._proxy_url:
+            logger.warning("Static Proxy URL is not configured. Running WITHOUT proxy.")
+            return None
+        return self._proxy_url
+
+    async def report_blocked(self, proxy: str) -> None:
+        """Cannot report blocks for a static proxy."""
+        pass
+
+    async def close(self) -> None:
+        pass
+
+
 # ═══════════════════════════════════════════════════════════════════════════
 # Rate Limiter
 # ═══════════════════════════════════════════════════════════════════════════
@@ -200,13 +226,11 @@ class RateLimiter:
 
 # Signatures that indicate Kaspi/Cloudflare/Variti blocked the request
 _BLOCK_SIGNATURES = [
-    "captcha",
     "cf-challenge",
     "just a moment",
-    "access denied",
     "variti",
     "ddos protection",
-    "blocked",
+    "cloudflare-nginx",
     "suspicious activity",
 ]
 
@@ -226,4 +250,8 @@ def is_blocked(page_content: str, status_code: int = 200) -> bool:
         return True
 
     content_lower = page_content.lower()
-    return any(sig in content_lower for sig in _BLOCK_SIGNATURES)
+    for sig in _BLOCK_SIGNATURES:
+        if sig in content_lower:
+            logger.warning(f"is_blocked triggered by signature: '{sig}'")
+            return True
+    return False

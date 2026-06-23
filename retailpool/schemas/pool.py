@@ -14,6 +14,8 @@ class PoolCreate(BaseModel):
     """Schema for creating a new co-buying pool."""
 
     product_id: uuid.UUID = Field(..., description="ID of the product from the scanner")
+    product_name: str = Field(..., description="Name of the product")
+    supplier_name: str = Field(..., description="Name of the supplier or seller")
     target_quantity: int = Field(
         ..., gt=0, description="Minimum total units for wholesale"
     )
@@ -56,6 +58,8 @@ class PoolOut(BaseModel):
 
     id: uuid.UUID
     product_id: uuid.UUID
+    product_name: str
+    supplier_name: str
     target_quantity: int
     target_amount: float
     current_quantity: int

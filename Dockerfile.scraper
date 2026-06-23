@@ -1,5 +1,5 @@
 # RetailPool AI v2.0 — Scraper Worker (Playwright)
-FROM mcr.microsoft.com/playwright/python:v1.44.0-noble
+FROM mcr.microsoft.com/playwright/python:v1.44.0-jammy
 
 WORKDIR /app
 

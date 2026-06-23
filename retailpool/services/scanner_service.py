@@ -15,7 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from retailpool.config import settings, TARGET_CATEGORIES
 from retailpool.models.product import Product, NicheAnalysis
 from retailpool.schemas.product import CategoryScanResult, ProductCard
-from retailpool.scraper.antifraud import SmartProxyProvider
+from retailpool.scraper.antifraud import SmartProxyProvider, StaticProxyProvider
 from retailpool.scraper.browser import BrowserManager
 from retailpool.scraper.kaspi_scraper import KaspiScraper
 from retailpool.scraper.niche_analyzer import NicheAnalyzer, NicheResult
@@ -41,7 +41,10 @@ class ScannerService:
     async def scan_all_categories(self) -> list[CategoryScanResult]:
         """Run full scan across all configured target categories."""
         results: list[CategoryScanResult] = []
-        proxy_provider = SmartProxyProvider()
+        if settings.PROXY_URL:
+            proxy_provider = StaticProxyProvider()
+        else:
+            proxy_provider = SmartProxyProvider()
 
         try:
             redis = aioredis.from_url(settings.REDIS_URL, decode_responses=True)
@@ -78,7 +81,10 @@ class ScannerService:
         self, category_url: str, slug: str, name: str
     ) -> CategoryScanResult:
         """Scan a single category on demand."""
-        proxy_provider = SmartProxyProvider()
+        if settings.PROXY_URL:
+            proxy_provider = StaticProxyProvider()
+        else:
+            proxy_provider = SmartProxyProvider()
 
         try:
             redis = aioredis.from_url(settings.REDIS_URL, decode_responses=True)
