@@ -22,6 +22,8 @@ from pydantic import BaseModel, Field
 from retailpool.database import async_session_factory
 from retailpool.services.ntin_service import NtinService
 from retailpool.models.ntin import NtinStatus
+from retailpool.models.user import User
+from retailpool.services.auth_service import get_current_user
 
 logger = logging.getLogger(__name__)
 
@@ -135,7 +137,6 @@ class NtinStatsResponse(BaseModel):
 # ═══════════════════════════════════════════════════════════════════════════
 
 # Use a deterministic UUID for demo/MVP until auth is properly wired
-DEMO_USER_ID = uuid.UUID("00000000-0000-0000-0000-000000000001")
 
 
 def _product_to_response(p) -> NtinProductResponse:
@@ -172,42 +173,55 @@ def _product_to_response(p) -> NtinProductResponse:
 # ═══════════════════════════════════════════════════════════════════════════
 
 @router.get("/products", response_model=list[NtinProductResponse])
-async def list_products(status: str | None = None):
+async def list_products(status: str | None = None, current_user: User = Depends(get_current_user)):
     """List all NTIN products for the current user."""
     async with async_session_factory() as session:
         svc = NtinService(session)
-        products = await svc.get_products(DEMO_USER_ID, status_filter=status)
+        products = await svc.get_products(current_user.id, status_filter=status)
         return [_product_to_response(p) for p in products]
 
 
 @router.get("/products/{product_id}", response_model=NtinProductResponse)
-async def get_product(product_id: str):
+async def get_product(product_id: str, current_user: User = Depends(get_current_user)):
     """Get a single NTIN product."""
     async with async_session_factory() as session:
         svc = NtinService(session)
-        product = await svc.get_product(uuid.UUID(product_id), DEMO_USER_ID)
+        product = await svc.get_product(uuid.UUID(product_id), current_user.id)
         if not product:
             raise HTTPException(status_code=404, detail="Product not found")
         return _product_to_response(product)
 
 
 @router.post("/products", response_model=NtinProductResponse)
-async def create_product(data: NtinProductCreate):
+async def create_product(data: NtinProductCreate, current_user: User = Depends(get_current_user)):
     """Create a new NTIN product card."""
     async with async_session_factory() as session:
         async with session.begin():
             svc = NtinService(session)
-            product = await svc.create_product(DEMO_USER_ID, data.model_dump())
+            
+            if current_user.email != "karimbai.ali10@mail.ru":
+                stats = await svc.get_stats(current_user.id)
+                plan_limits = {
+                    "free": 0,
+                    "start": 20,
+                    "business": 100,
+                    "unlimited": 200
+                }
+                limit = plan_limits.get(current_user.plan.lower(), 0)
+                if stats["total"] >= limit:
+                    raise HTTPException(status_code=403, detail="Лимит NTIN регистраций исчерпан. Пожалуйста, обновите тариф.")
+                    
+            product = await svc.create_product(current_user.id, data.model_dump())
             return _product_to_response(product)
 
 
 @router.put("/products/{product_id}", response_model=NtinProductResponse)
-async def update_product(product_id: str, data: NtinProductUpdate):
+async def update_product(product_id: str, data: NtinProductUpdate, current_user: User = Depends(get_current_user)):
     """Update an NTIN product card."""
     async with async_session_factory() as session:
         async with session.begin():
             svc = NtinService(session)
-            product = await svc.get_product(uuid.UUID(product_id), DEMO_USER_ID)
+            product = await svc.get_product(uuid.UUID(product_id), current_user.id)
             if not product:
                 raise HTTPException(status_code=404, detail="Product not found")
 
@@ -223,12 +237,12 @@ async def update_product(product_id: str, data: NtinProductUpdate):
 
 
 @router.delete("/products/{product_id}")
-async def delete_product(product_id: str):
+async def delete_product(product_id: str, current_user: User = Depends(get_current_user)):
     """Delete an NTIN product card."""
     async with async_session_factory() as session:
         async with session.begin():
             svc = NtinService(session)
-            product = await svc.get_product(uuid.UUID(product_id), DEMO_USER_ID)
+            product = await svc.get_product(uuid.UUID(product_id), current_user.id)
             if not product:
                 raise HTTPException(status_code=404, detail="Product not found")
             await session.delete(product)
@@ -236,77 +250,77 @@ async def delete_product(product_id: str):
 
 
 @router.post("/products/{product_id}/ai-fill", response_model=NtinProductResponse)
-async def ai_fill_product(product_id: str):
+async def ai_fill_product(product_id: str, current_user: User = Depends(get_current_user)):
     """AI auto-fill: ТН ВЭД code + Kazakh translation."""
     async with async_session_factory() as session:
         async with session.begin():
             svc = NtinService(session)
-            product = await svc.ai_fill_product(uuid.UUID(product_id), DEMO_USER_ID)
+            product = await svc.ai_fill_product(uuid.UUID(product_id), current_user.id)
             if not product:
                 raise HTTPException(status_code=404, detail="Product not found")
             return _product_to_response(product)
 
 
 @router.post("/products/{product_id}/submit", response_model=NtinProductResponse)
-async def submit_product(product_id: str):
+async def submit_product(product_id: str, current_user: User = Depends(get_current_user)):
     """Submit product card to НКТ for NTIN assignment."""
     async with async_session_factory() as session:
         async with session.begin():
             svc = NtinService(session)
-            product = await svc.submit_to_nkt(uuid.UUID(product_id), DEMO_USER_ID)
+            product = await svc.submit_to_nkt(uuid.UUID(product_id), current_user.id)
             if not product:
                 raise HTTPException(status_code=404, detail="Product not found")
             return _product_to_response(product)
 
 
 @router.post("/products/{product_id}/check-status", response_model=NtinProductResponse)
-async def check_product_status(product_id: str):
+async def check_product_status(product_id: str, current_user: User = Depends(get_current_user)):
     """Check the status of a submitted product in НКТ."""
     async with async_session_factory() as session:
         async with session.begin():
             svc = NtinService(session)
-            product = await svc.check_nkt_status(uuid.UUID(product_id), DEMO_USER_ID)
+            product = await svc.check_nkt_status(uuid.UUID(product_id), current_user.id)
             if not product:
                 raise HTTPException(status_code=404, detail="Product not found")
             return _product_to_response(product)
 
 
 @router.post("/sync")
-async def sync_nkt_requests():
+async def sync_nkt_requests(current_user: User = Depends(get_current_user)):
     """Sync statuses of all submitted products from НКТ."""
     async with async_session_factory() as session:
         async with session.begin():
             svc = NtinService(session)
-            result = await svc.sync_nkt_requests(DEMO_USER_ID)
+            result = await svc.sync_nkt_requests(current_user.id)
             return result
 
 
 @router.post("/bulk-import", response_model=list[NtinProductResponse])
-async def bulk_import(data: BulkImportRequest):
+async def bulk_import(data: BulkImportRequest, current_user: User = Depends(get_current_user)):
     """Bulk import products for NTIN processing."""
     async with async_session_factory() as session:
         async with session.begin():
             svc = NtinService(session)
             products = await svc.bulk_import(
-                DEMO_USER_ID,
+                current_user.id,
                 [p.model_dump() for p in data.products]
             )
             return [_product_to_response(p) for p in products]
 
 
 @router.get("/stats", response_model=NtinStatsResponse)
-async def get_stats():
+async def get_stats(current_user: User = Depends(get_current_user)):
     """Get NTIN status counts for the current user."""
     async with async_session_factory() as session:
         svc = NtinService(session)
-        stats = await svc.get_stats(DEMO_USER_ID)
+        stats = await svc.get_stats(current_user.id)
         return NtinStatsResponse(**stats)
 
 
 # ── ТН ВЭД Search ───────────────────────────────────────────────────────
 
 @router.post("/tn-ved/search", response_model=list[TnVedResult])
-async def search_tn_ved(data: TnVedSearchRequest):
+async def search_tn_ved(data: TnVedSearchRequest, current_user: User = Depends(get_current_user)):
     """Search ТН ВЭД ЕАЭС codes by product description."""
     results = NtinService.search_tn_ved(data.query)
     return [TnVedResult(**r) for r in results]
@@ -315,7 +329,7 @@ async def search_tn_ved(data: TnVedSearchRequest):
 # ── Translation ─────────────────────────────────────────────────────────
 
 @router.post("/translate")
-async def translate_text(data: TranslateRequest):
+async def translate_text(data: TranslateRequest, current_user: User = Depends(get_current_user)):
     """Translate Russian text to Kazakh."""
     kz = NtinService.translate_to_kazakh(data.text)
     return {"original": data.text, "translated": kz}
@@ -324,11 +338,11 @@ async def translate_text(data: TranslateRequest):
 # ── Seller Settings ──────────────────────────────────────────────────────
 
 @router.get("/settings", response_model=SellerSettingsResponse)
-async def get_settings():
+async def get_settings(current_user: User = Depends(get_current_user)):
     """Get current user's seller settings (keys masked)."""
     async with async_session_factory() as session:
         svc = NtinService(session)
-        settings = await svc.get_settings(DEMO_USER_ID)
+        settings = await svc.get_settings(current_user.id)
         if not settings:
             return SellerSettingsResponse()
         return SellerSettingsResponse(
@@ -340,12 +354,12 @@ async def get_settings():
 
 
 @router.post("/settings", response_model=SellerSettingsResponse)
-async def save_settings(data: SellerSettingsRequest):
+async def save_settings(data: SellerSettingsRequest, current_user: User = Depends(get_current_user)):
     """Save seller API keys and settings."""
     async with async_session_factory() as session:
         async with session.begin():
             svc = NtinService(session)
-            settings = await svc.save_settings(DEMO_USER_ID, data.model_dump(exclude_unset=True))
+            settings = await svc.save_settings(current_user.id, data.model_dump(exclude_unset=True))
             return SellerSettingsResponse(
                 has_kaspi_key=bool(settings.kaspi_api_key),
                 kaspi_merchant_id=settings.kaspi_merchant_id,

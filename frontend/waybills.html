@@ -27,7 +27,7 @@
   <div class="nav-inner">
     <a href="index.html" class="nav-logo">Quareo</a>
     <div class="nav-links" id="navLinks">
-      <a href="index.html">Главная</a><a href="scanner.html">Сканер</a><a href="ntin.html">NTIN</a><a href="pools.html">Пулы</a><a href="pricing.html">Тарифы</a>
+      <a href="index.html">Главная</a><a href="scanner.html">Сканер</a><a href="ntin.html">NTIN</a><a href="pools.html">Пулы</a><a href="waybills.html" class="active">Накладные</a><a href="pricing.html">Тарифы</a>
     </div>
     <div class="nav-right">
       <div class="lang-switch"><button class="lang-btn active" data-lang="ru" onclick="rpSetLang('ru')">RU</button><button class="lang-btn" data-lang="en" onclick="rpSetLang('en')">EN</button></div>
@@ -50,62 +50,39 @@
     <div class="container">
       <div class="waybills-container" data-reveal>
         <div class="wb-header">
-          <h2 style="font-size:1.5rem">Новые заказы (3)</h2>
+          <h2 style="font-size:1.5rem">Загрузка накладных (ZIP)</h2>
           <div class="wb-actions">
-            <button class="btn-secondary" style="padding:10px 20px">⚙️ Настройки термопринтера</button>
-            <button class="btn-primary" style="padding:10px 20px">🖨️ Распечатать 3 накладные</button>
+            <button class="btn-secondary" style="padding:10px 20px" onclick="document.getElementById('zipInput').click()">📁 Выбрать ZIP файл</button>
+            <input type="file" id="zipInput" accept=".zip" style="display:none" onchange="handleZipSelect(event)">
           </div>
         </div>
-        <div style="overflow-x:auto">
-          <table class="wb-table">
-            <thead>
-              <tr>
-                <th style="width:40px"><input type="checkbox" class="checkbox" checked></th>
-                <th>Заказ / Товар</th>
-                <th>Покупатель / Доставка</th>
-                <th>Сумма</th>
-                <th>Статус печати</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><input type="checkbox" class="checkbox" checked></td>
-                <td><strong>#284910385</strong><br><span style="font-size:12px">Увлажнитель воздуха Xiaomi Smart 2 Lite</span></td>
-                <td>Алматы, Доставка Kaspi<br><span style="font-size:12px">Сегодня до 18:00</span></td>
-                <td style="font-weight:600;color:var(--text)">24 900 ₸</td>
-                <td><span class="status-pill status-new">Новый</span></td>
-              </tr>
-              <tr>
-                <td><input type="checkbox" class="checkbox" checked></td>
-                <td><strong>#284911024</strong><br><span style="font-size:12px">Беспроводные наушники Apple AirPods Pro 2</span></td>
-                <td>Астана, Самовывоз (ПВЗ)<br><span style="font-size:12px">Завтра</span></td>
-                <td style="font-weight:600;color:var(--text)">112 500 ₸</td>
-                <td><span class="status-pill status-new">Новый</span></td>
-              </tr>
-              <tr>
-                <td><input type="checkbox" class="checkbox" checked></td>
-                <td><strong>#284912999</strong><br><span style="font-size:12px">Фитнес-браслет Xiaomi Smart Band 8</span></td>
-                <td>Шымкент, Доставка курьером<br><span style="font-size:12px">12 Февраля</span></td>
-                <td style="font-weight:600;color:var(--text)">18 200 ₸</td>
-                <td><span class="status-pill status-new">Новый</span></td>
-              </tr>
-              <tr style="opacity:0.6">
-                <td><input type="checkbox" class="checkbox"></td>
-                <td><strong>#284905111</strong><br><span style="font-size:12px">Кофемашина DeLonghi Magnifica</span></td>
-                <td>Алматы, Доставка Kaspi<br><span style="font-size:12px">Вчера</span></td>
-                <td style="font-weight:600;color:var(--text)">245 000 ₸</td>
-                <td><span class="status-pill status-printed">Распечатано</span></td>
-              </tr>
-            </tbody>
-          </table>
+        
+        <div id="uploadArea" style="text-align:center; padding: 3rem 1rem; border: 2px dashed var(--border); border-radius: var(--radius-lg); margin-bottom: 2rem;">
+          <div style="font-size:3rem; margin-bottom:1rem">📦</div>
+          <h3 id="uploadTitle">Загрузите ZIP-архив с накладными Kaspi</h3>
+          <p style="color:var(--text-2); margin-top:0.5rem">Мы автоматически обрежем их и подготовим для печати.</p>
         </div>
-      </div>
 
-      <div class="feature-coming" data-reveal>
-        <div style="font-size:48px;margin-bottom:1rem">🖨️</div>
-        <h2>Авто-выгрузка — скоро</h2>
-        <p style="color:var(--text-2);max-width:480px;margin:0 auto 2rem;line-height:1.7">Подключите Kaspi API, чтобы заказы появлялись здесь автоматически. Печать десятков накладных займёт всего 1 клик.</p>
-        <a href="ntin.html" class="btn-primary" style="padding:14px 32px">Настроить API →</a>
+        <div id="formatSelection" style="display:none; text-align:center; margin-bottom:2rem;">
+          <h3 style="margin-bottom: 1rem;">Выберите формат печати:</h3>
+          <div style="display:flex; justify-content:center; gap: 1rem; flex-wrap: wrap;">
+            <button class="btn-secondary" id="btnFormatThermal" onclick="processWaybills('thermal')">🖨️ Для термопринтера (1 на стр)</button>
+            <button class="btn-secondary" id="btnFormatA4" onclick="processWaybills('a4')">📄 4 накладные на 1 листе А4</button>
+          </div>
+        </div>
+
+        <div id="loadingArea" style="display:none; text-align:center; padding: 2rem;">
+          <div class="spinner"></div>
+          <p style="margin-top:1rem; color:var(--brand)">Обработка PDF файлов...</p>
+        </div>
+
+        <div id="resultArea" style="display:none; text-align:center; padding: 2rem;">
+          <h3 style="color:var(--green)">✓ Готово!</h3>
+          <p style="color:var(--text-2); margin-bottom: 1.5rem;">Ваши накладные успешно объединены и готовы к печати.</p>
+          <a id="downloadLink" href="#" target="_blank" class="btn-primary" style="padding:12px 24px; display:inline-block;">⬇️ Скачать PDF для печати</a>
+          <br><br>
+          <button class="btn-secondary" onclick="resetForm()">Загрузить другой ZIP</button>
+        </div>
       </div>
     </div>
   </section>
@@ -121,5 +98,77 @@
   <div class="footer-bottom"><span>© 2026 Quareo.</span><span class="mono">Алматы · Казахстан</span></div>
 </footer>
 <script src="assets/common.js"></script>
+<style>
+.spinner { width: 40px; height: 40px; border: 4px solid var(--border); border-top-color: var(--brand); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto; }
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+<script>
+let selectedFile = null;
+
+function handleZipSelect(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (!file.name.toLowerCase().endsWith('.zip')) {
+    alert('Пожалуйста, выберите ZIP архив!');
+    return;
+  }
+  selectedFile = file;
+  document.getElementById('uploadTitle').textContent = `Выбран файл: ${file.name}`;
+  document.getElementById('formatSelection').style.display = 'block';
+}
+
+function resetForm() {
+  selectedFile = null;
+  document.getElementById('zipInput').value = '';
+  document.getElementById('uploadTitle').textContent = 'Загрузите ZIP-архив с накладными Kaspi';
+  document.getElementById('formatSelection').style.display = 'none';
+  document.getElementById('loadingArea').style.display = 'none';
+  document.getElementById('resultArea').style.display = 'none';
+  document.getElementById('uploadArea').style.display = 'block';
+}
+
+async function processWaybills(format) {
+  if (!selectedFile) return;
+  
+  document.getElementById('uploadArea').style.display = 'none';
+  document.getElementById('formatSelection').style.display = 'none';
+  document.getElementById('loadingArea').style.display = 'block';
+
+  const formData = new FormData();
+  formData.append('file', selectedFile);
+  formData.append('format', format);
+
+  try {
+    const resp = await fetch(RP_API_BASE + '/api/waybills/process', {
+      method: 'POST',
+      headers: {
+        ...rpAuthHeaders()
+        // Do not set Content-Type for FormData
+      },
+      body: formData
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(()=>({}));
+      throw new Error(err.detail || `HTTP ${resp.status}`);
+    }
+
+    // Response is a PDF blob
+    const blob = await resp.blob();
+    const url = URL.createObjectURL(blob);
+    
+    document.getElementById('loadingArea').style.display = 'none';
+    document.getElementById('resultArea').style.display = 'block';
+    
+    const a = document.getElementById('downloadLink');
+    a.href = url;
+    a.download = `waybills_${format}_${new Date().getTime()}.pdf`;
+    
+  } catch(e) {
+    alert('Ошибка при обработке: ' + e.message);
+    resetForm();
+  }
+}
+</script>
 </body>
 </html>

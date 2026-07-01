@@ -13,8 +13,13 @@ import urllib.parse
 from typing import Any
 import random
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends, Request
 from pydantic import BaseModel, Field
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from retailpool.database import get_db
+from retailpool.models.user import User
+from retailpool.services.auth_service import get_optional_user
 
 from retailpool.config import settings
 from retailpool.scraper.antifraud import SmartProxyProvider, StaticProxyProvider
@@ -313,11 +318,35 @@ def _generate_analysis(
     response_model=ScanResponse,
     summary="Scan a Kaspi.kz niche with real data",
 )
-async def scan_niche(req: ScanRequest) -> ScanResponse:
+async def scan_niche(
+    req: ScanRequest, 
+    request: Request,
+    current_user: User | None = Depends(get_optional_user),
+    db: AsyncSession = Depends(get_db)
+) -> ScanResponse:
     """
     Scrape actual Kaspi.kz search results using Playwright,
     analyze product card quality, and return real niche insights.
     """
+    api_key = request.headers.get("X-API-Key")
+    if api_key != settings.API_KEY:
+        if not current_user:
+            raise HTTPException(status_code=401, detail="Необходима авторизация")
+            
+        if current_user.email != "karimbai.ali10@mail.ru":
+            plan_limits = {
+                "free": 0,
+                "start": 50,
+                "business": 200,
+                "unlimited": 999999
+            }
+            limit = plan_limits.get(current_user.plan.lower(), 0)
+            if getattr(current_user, 'scans_used', 0) >= limit:
+                raise HTTPException(status_code=403, detail="Лимит сканирований исчерпан. Пожалуйста, обновите тариф.")
+                
+            current_user.scans_used = getattr(current_user, 'scans_used', 0) + 1
+            await db.commit()
+            
     query = req.query.strip()
     lang = "ru"  # Default, could be made configurable
 

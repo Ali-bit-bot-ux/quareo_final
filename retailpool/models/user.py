@@ -7,7 +7,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import String, Boolean, DateTime
+from sqlalchemy import String, Boolean, DateTime, Integer
 from sqlalchemy.orm import Mapped, mapped_column
 
 from retailpool.models.base import Base, UUIDType
@@ -42,7 +42,10 @@ class User(Base):
     )
     plan: Mapped[str] = mapped_column(
         String(32), default="free",
-        comment="Subscription plan: free / start / business / agency"
+        comment="Subscription plan: free / start / business / unlimited"
+    )
+    scans_used: Mapped[int] = mapped_column(
+        Integer, default=0
     )
     is_active: Mapped[bool] = mapped_column(
         Boolean, default=True

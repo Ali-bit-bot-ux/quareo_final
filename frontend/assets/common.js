@@ -5,6 +5,25 @@
 /* ── API Base URL ──────────────────────────────────────────── */
 const RP_API_BASE = window.location.origin;
 
+/* ── Global Fetch Interceptor ──────────────────────────────── */
+const rpOriginalFetch = window.fetch;
+window.fetch = async function(...args) {
+  const response = await rpOriginalFetch(...args);
+  if (response.status === 401) {
+    try {
+      const clone = response.clone();
+      const err = await clone.json();
+      if (err && err.detail && typeof err.detail === 'string' && (err.detail.includes('Signature has expired') || err.detail.includes('expired'))) {
+        alert('Ваша сессия устарела. Пожалуйста, войдите снова.');
+        rpLogout();
+        // Return a never-resolving promise so local catch blocks don't fire generic alerts
+        return new Promise(() => {});
+      }
+    } catch(e) {}
+  }
+  return response;
+};
+
 /* ── Auth Utilities ────────────────────────────────────────── */
 function rpGetToken() {
   return localStorage.getItem('rp_token');
