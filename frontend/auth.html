@@ -185,18 +185,22 @@ async function handleLogin() {
   btn.classList.add('btn-loading');
   
   try {
-    const formData = new URLSearchParams();
-    formData.append('username', email);
-    formData.append('password', pwd);
-    
     const res = await fetch(RP_API_BASE + '/auth/login', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: formData.toString()
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email, password: pwd })
     });
     
     const data = await res.json();
-    if (!res.ok) throw new Error(data.detail || 'Login failed');
+    if (!res.ok) {
+      let msg = data.detail;
+      if (Array.isArray(msg)) {
+        msg = msg.map(err => `${err.loc.join('.')}: ${err.msg}`).join(', ');
+      } else if (typeof msg === 'object') {
+        msg = JSON.stringify(msg);
+      }
+      throw new Error(msg || 'Login failed');
+    }
     
     // Setup session
     rpSetAuth(data.access_token, data.user);
@@ -248,13 +252,10 @@ async function handleRegister() {
     sucBox.classList.add('visible');
     
     // Auto login
-    const formData = new URLSearchParams();
-    formData.append('username', email);
-    formData.append('password', pwd);
     const logRes = await fetch(RP_API_BASE + '/auth/login', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: formData.toString()
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email, password: pwd })
     });
     const logData = await logRes.json();
     if (logRes.ok) {
@@ -264,7 +265,8 @@ async function handleRegister() {
       setTimeout(() => { switchTab('login'); }, 1500);
     }
   } catch (err) {
-    errBox.textContent = err.message;
+    let msg = err.message;
+    errBox.textContent = msg;
     errBox.classList.add('visible');
     btn.classList.remove('btn-loading');
   }

@@ -31,6 +31,11 @@ from retailpool.routers.documents import router as documents_router
 from retailpool.routers.auth import router as auth_router
 from retailpool.routers.scan_api import router as scan_api_router
 from retailpool.routers.subscriptions import router as subscriptions_router
+from retailpool.routers.ntin import router as ntin_router
+from retailpool.routers.repricing import router as repricing_router
+from retailpool.routers.analytics import router as analytics_router
+from retailpool.routers.reviews import router as reviews_router
+from retailpool.routers.waybills import router as waybills_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -60,6 +65,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Auto-create tables (including new Subscription table)
     from retailpool.models.base import Base
     from retailpool.models import subscription  # noqa: F401 — register model
+    from retailpool.bot import models as _bot_models  # noqa: F401 — register bot models
+    from retailpool.models import ntin as _ntin_models  # noqa: F401 — register NTIN models
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     logger.info("Database tables ensured.")
@@ -123,6 +130,11 @@ app.include_router(scanner_router)
 app.include_router(documents_router)
 app.include_router(scan_api_router)
 app.include_router(subscriptions_router)
+app.include_router(ntin_router)
+app.include_router(repricing_router)
+app.include_router(analytics_router)
+app.include_router(reviews_router)
+app.include_router(waybills_router)
 
 
 # ── Static assets (CSS, JS) ─────────────────────────────────────────────
@@ -161,12 +173,18 @@ def _serve_page(filename: str):
 
 # ── Page route mapping: (clean_path, html_filename) ─────────────────────
 _PAGE_ROUTES = [
-    ("/",          "index.html"),
-    ("/scanner",   "scanner.html"),
-    ("/pools-page", "pools.html"),
-    ("/pricing",   "pricing.html"),
-    ("/checkout",  "checkout.html"),
-    ("/auth",      "auth.html"),
+    ("/",            "index.html"),
+    ("/scanner",     "scanner.html"),
+    ("/pools-page",  "pools.html"),
+    ("/pricing",     "pricing.html"),
+    ("/checkout",    "checkout.html"),
+    ("/auth",        "auth.html"),
+    ("/ntin",        "ntin.html"),
+    ("/kaspi-bot",   "kaspi-bot.html"),
+    ("/analytics",   "analytics.html"),
+    ("/reviews",     "reviews.html"),
+    ("/waybills",    "waybills.html"),
+    ("/dashboard",   "dashboard.html"),
 ]
 
 for _path, _filename in _PAGE_ROUTES:

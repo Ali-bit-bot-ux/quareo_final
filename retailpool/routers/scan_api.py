@@ -353,18 +353,25 @@ async def scan_niche(req: ScanRequest) -> ScanResponse:
                 avg_reviews = sum(p.review_count for p in mock_products) / len(mock_products) if mock_products else 0
                 score = _compute_score(0.3, 0, avg_reviews, seller_count)
                 
+                mock_dicts = [p.model_dump() for p in mock_products]
+                
+                base_analysis = _generate_analysis(query, total_found, seller_count, mock_products[0].price or 0, 0.3, score, avg_reviews, lang)
+                warning_ru = "⚠️ ВНИМАНИЕ: Kaspi.kz заблокировал запрос (сработала анти-бот защита). Показаны ДЕМОНСТРАЦИОННЫЕ данные! Пожалуйста, повторите сканирование.\n\n"
+                warning_en = "⚠️ WARNING: Kaspi.kz blocked the request (anti-bot protection). Showing DEMO data! Please try scanning again.\n\n"
+                analysis_text = (warning_ru if lang == "ru" else warning_en) + base_analysis
+
                 return ScanResponse(
                     success=True,
                     query=query,
                     score=score,
-                    score_label=_get_score_label(score, lang),
+                    score_label=f"[DEMO] {_get_score_label(score, lang)}",
                     demand=f"{'Высокий' if avg_reviews > 30 else 'Средний' if avg_reviews > 5 else 'Низкий'} — ~{int(avg_reviews)} отзывов/товар",
                     sellers=f"{seller_count} {'продавцов' if seller_count != 1 else 'продавец'}",
                     avg_price=_format_price(mock_products[0].price) if mock_products and mock_products[0].price else "Нет данных",
-                    opportunity=_get_score_label(score, lang),
-                    weaknesses=[],
+                    opportunity=f"[DEMO] {_get_score_label(score, lang)}",
+                    weaknesses=_generate_weaknesses(mock_dicts, lang),
                     recommendations=_generate_recommendations(score, mock_products[0].price or 0, seller_count, 0.3, lang),
-                    analysis=_generate_analysis(query, total_found, seller_count, mock_products[0].price or 0, 0.3, score, avg_reviews, lang),
+                    analysis=analysis_text,
                     products=mock_products,
                     products_scraped=total_found,
                 )

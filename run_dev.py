@@ -24,6 +24,7 @@ from retailpool.models.base import Base
 import retailpool.models.product  # noqa: F401
 import retailpool.models.pool     # noqa: F401
 import retailpool.models.user     # noqa: F401
+import retailpool.models.ntin     # noqa: F401
 
 
 async def init_db():

@@ -106,8 +106,9 @@ class KaspiScraper:
                     const href = link ? link.getAttribute('href') : '';
                     const productId = card.getAttribute('data-product-id')
                         || (href.match(/\\/p\\/([^/?]+)/) || [])[1] || '';
-                    const priceText = priceEl
-                        ? priceEl.textContent.replace(/[^\\d]/g, '') : '0';
+                    const text = priceEl ? priceEl.textContent : '0';
+                    const match = text.replace(/\\s+/g, '').match(/\\d+/);
+                    const priceText = match ? match[0] : '0';
                     return {
                         kaspi_id: productId,
                         title: titleEl ? titleEl.textContent.trim() : '',
@@ -218,8 +219,9 @@ class KaspiScraper:
                     const productId = card.getAttribute('data-product-id')
                         || (href && href.match(/\\/p\\/([^/?]+)/)
                             ? href.match(/\\/p\\/([^/?]+)/)[1] : '') || '';
-                    const priceText = priceEl
-                        ? priceEl.textContent.replace(/[^\\d]/g, '') : '0';
+                    const text = priceEl ? priceEl.textContent : '0';
+                    const match = text.replace(/\\s+/g, '').match(/\\d+/);
+                    const priceText = match ? match[0] : '0';
                     const title = titleEl ? titleEl.textContent.trim() : '';
                     if (!title || title.length < 3) return null;
                     let fullUrl = '';

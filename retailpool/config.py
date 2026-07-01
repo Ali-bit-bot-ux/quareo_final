@@ -106,6 +106,30 @@ class Settings(BaseSettings):
         default="",
         description="Telegram Bot API token (used by the separate bot worker).",
     )
+    TELEGRAM_WEBHOOK_URL: str = Field(
+        default="",
+        description="Public HTTPS URL for Telegram webhook (production only).",
+    )
+    BOT_API_BASE_URL: str = Field(
+        default="http://localhost:8000",
+        description="Base URL of the FastAPI backend for bot API calls.",
+    )
+    ALERT_CHECK_INTERVAL_MINUTES: int = Field(
+        default=30,
+        ge=5,
+        le=1440,
+        description="Interval in minutes between alert checks.",
+    )
+
+    # ── NKT (National Catalog) API ────────────────────────────────────────
+    NKT_API_KEY: str = Field(
+        default="",
+        description="API key for nationalcatalog.kz (НКТ) — platform-level default.",
+    )
+    NKT_API_BASE_URL: str = Field(
+        default="https://api.nationalcatalog.kz/v1",
+        description="Base URL for the НКТ REST API.",
+    )
 
     # ── Success Fee ───────────────────────────────────────────────────────
     SUCCESS_FEE_PERCENT: float = Field(
