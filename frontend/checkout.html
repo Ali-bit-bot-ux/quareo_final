@@ -176,22 +176,24 @@
             <div class="pay-method" onclick="selectMethod(this)" data-i="method_kaspi">Kaspi Pay</div>
           </div>
 
-          <div class="form-group">
-            <label class="form-label" data-i="form_card">Номер карты</label>
-            <input class="form-input" type="text" id="fCard" placeholder="0000 0000 0000 0000" maxlength="19" oninput="formatCard(this)">
-          </div>
-          <div class="card-row">
+          <div id="cardFields">
             <div class="form-group">
-              <label class="form-label" data-i="form_expiry">Срок</label>
-              <input class="form-input" type="text" id="fExpiry" placeholder="ММ/ГГ" maxlength="5" oninput="formatExpiry(this)">
+              <label class="form-label" data-i="form_card">Номер карты</label>
+              <input class="form-input" type="text" id="fCard" placeholder="0000 0000 0000 0000" maxlength="19" oninput="formatCard(this)">
             </div>
-            <div class="form-group">
-              <label class="form-label">CVV</label>
-              <input class="form-input" type="password" id="fCvv" placeholder="•••" maxlength="3">
+            <div class="card-row">
+              <div class="form-group">
+                <label class="form-label" data-i="form_expiry">Срок</label>
+                <input class="form-input" type="text" id="fExpiry" placeholder="ММ/ГГ" maxlength="5" oninput="formatExpiry(this)">
+              </div>
+              <div class="form-group">
+                <label class="form-label">CVV</label>
+                <input class="form-input" type="password" id="fCvv" placeholder="•••" maxlength="3">
+              </div>
             </div>
           </div>
 
-          <div class="security-note">
+          <div class="security-note" id="secNote">
             <span class="lock">🔒</span>
             <span data-i="form_note">Данные надежно защищены.</span>
           </div>
@@ -278,6 +280,17 @@ function renderSummary() {
 function selectMethod(el) {
   document.querySelectorAll('.pay-method').forEach(m => m.classList.remove('active'));
   el.classList.add('active');
+  
+  const isKaspi = el.getAttribute('data-i') === 'method_kaspi';
+  const cardFields = document.getElementById('cardFields');
+  const secNote = document.getElementById('secNote');
+  if (isKaspi) {
+    if(cardFields) cardFields.style.display = 'none';
+    if(secNote) secNote.style.display = 'none';
+  } else {
+    if(cardFields) cardFields.style.display = 'block';
+    if(secNote) secNote.style.display = 'flex';
+  }
 }
 
 function formatCard(el) {
