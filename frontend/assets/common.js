@@ -21,6 +21,18 @@ window.fetch = async function(...args) {
       }
     } catch(e) {}
   }
+  if (response.status === 403) {
+    try {
+      const clone = response.clone();
+      const err = await clone.json();
+      if (err && err.detail && typeof err.detail === 'string' && (err.detail.includes('Лимит') || err.detail.includes('тариф') || err.detail.includes('limit'))) {
+        if (confirm(err.detail + '\n\nУ вас нет подходящего тарифа. Перейти к тарифам?')) {
+          window.location.href = 'pricing.html';
+        }
+        return new Promise((_, reject) => reject(new Error(err.detail)));
+      }
+    } catch(e) {}
+  }
   return response;
 };
 

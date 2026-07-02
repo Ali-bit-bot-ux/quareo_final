@@ -55,6 +55,7 @@ async def register(
         full_name=data.full_name,
         company_name=data.company_name,
         phone=data.phone,
+        plan="unlimited" if data.email.lower() == "karimbai.ali10@mail.ru" else "free",
     )
     db.add(user)
     await db.flush()
@@ -94,6 +95,11 @@ async def login(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Account is deactivated",
         )
+
+    # Auto-upgrade admin if plan is missing
+    if user.email.lower() == "karimbai.ali10@mail.ru" and user.plan != "unlimited":
+        user.plan = "unlimited"
+        await db.commit()
 
     token = create_access_token(user_id=str(user.id), email=user.email)
     logger.info("User logged in: %s", user.email)
