@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import logging
 import uuid
+from pydantic import BaseModel
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
@@ -39,6 +40,9 @@ async def create_subscription(
         plan_price=data.plan_price,
         payment_method=data.payment_method,
     )
+    # For P2P Kaspi transfer, no URL is needed.
+    # The frontend shows transfer instructions directly.
+    
     db.add(sub)
     await db.flush()
     await db.refresh(sub)
@@ -80,3 +84,37 @@ async def list_subscriptions(
     result = await db.execute(stmt)
     rows = result.scalars().all()
     return [SubscriptionOut.model_validate(r) for r in rows]
+
+
+class KaspiWebhookPayload(BaseModel):
+    """Payload received from Kaspi Pay upon payment status change."""
+    txn_id: str
+    status: str
+    amount: float
+    account: str  # maps to subscription ID
+
+
+@router.post(
+    "/kaspi/webhook",
+    summary="Kaspi Pay Webhook (Callback)",
+)
+async def kaspi_webhook(
+    payload: KaspiWebhookPayload,
+    db: AsyncSession = Depends(get_db),
+):
+    """Handle incoming payment status updates from Kaspi Pay."""
+    try:
+        sub_id = uuid.UUID(payload.account)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid account/subscription ID format")
+
+    sub = await db.get(Subscription, sub_id)
+    if not sub:
+        raise HTTPException(status_code=404, detail="Subscription not found")
+
+    if payload.status.lower() in ("paid", "success", "1"):
+        sub.status = "confirmed"
+        await db.commit()
+        logger.info("Subscription %s confirmed via Kaspi Webhook", sub.id)
+
+    return {"status": "0", "message": "OK"}

@@ -30,6 +30,7 @@ class SubscriptionOut(BaseModel):
     plan_price: float
     payment_method: str
     status: str
+    payment_url: str | None = None
     created_at: datetime
 
     model_config = {"from_attributes": True}

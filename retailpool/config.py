@@ -139,6 +139,16 @@ class Settings(BaseSettings):
         description="Commission percentage (3-5%) charged for organizing a co-buy.",
     )
 
+    # ── Kaspi Pay API ─────────────────────────────────────────────────────
+    KASPI_PAY_TOKEN: str = Field(
+        default="",
+        description="Kaspi Pay API token for generating payment links.",
+    )
+    KASPI_MERCHANT_ID: str = Field(
+        default="",
+        description="Kaspi Pay Merchant ID.",
+    )
+
     # ── Scraper ───────────────────────────────────────────────────────────
     SCRAPER_MIN_DELAY: float = Field(
         default=2.0,

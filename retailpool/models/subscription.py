@@ -49,6 +49,10 @@ class Subscription(Base):
     status: Mapped[str] = mapped_column(
         String(32), default=SubscriptionStatus.PENDING.value
     )
+    payment_url: Mapped[str | None] = mapped_column(
+        String(512), nullable=True,
+        comment="URL for Kaspi Pay or other gateway"
+    )
 
     # Linked user (if logged in)
     user_id: Mapped[uuid.UUID | None] = mapped_column(UUIDType, nullable=True)
